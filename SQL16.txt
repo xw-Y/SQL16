@@ -1,0 +1,117 @@
+信息系统与数据库技术练习16答题卡
+
+班级：     信息管理一班
+姓名：     余晓伟
+学号：     20190307109
+
+注：请将答案放置在序号下方。*/
+
+（一）
+/*1、创建Storage数据库。*/
+CREATE DATABASE  Storage
+/*2、打开Storage数据库。*/
+USE Storage
+/*3、创建Product表，包括Pid、Pname、Specs、Weight、Price、Code、Cid七个字段，Pid、Cid、Code为定长字符类型，
+Pid、Cid长度都为4，Code长度为15，Pname、Specs为变长字符类型、长度都为40、不能为空，Weight为Decimal类型、精度16、小数位数2，
+Price为货币类型、限制Price只能大于等于0并且小于99999、约束名为ck_Price，Pid为主键，约束名为pk_Pid。*/
+CREATE TABLE Product
+(
+Pid CHAR(4) CONSTRAINT pk_Pid PRIMARY KEY,
+Pname VARCHAR(40) NOT NULL,
+Specs VARCHAR(40) NOT NULL,
+Weight Decimal(16[,2]),
+Price  MONEY CONSTRAINT ck_Price CHECK(Price>=0 AND 99999>Price),
+Code CHAR(15),
+Cid CHAR(4),
+)
+/*4、在Product表添加以下记录：Pid=PD02,Pname=商品2,Specs=EQ2080,Price=10000, Cid=CT01,Code=202006011234567*/
+INSERT Product(Pid,Pname,Specs,Price, Cid,Code)
+VALUES('PD02','商品2','EQ2080',10000,'CT01',202006011234567)
+/*5、在Product表添加以下记录，如果不能执行观察错误信息。Pid=PD03,Pname=商品3, Specs=EQ2081,Price=123456,Cid=CT02,Code=202006011234568*/
+INSERT Product(Pid,Pname,Specs,Price, Cid,Code)
+VALUES('PD03','商品3','EQ2081',123456,'CT02',202006011234568)
+/*6、修改Product表，限制Weight只能大于等于0、约束名为ck_Weight*/
+ALTER TABLE Product
+ADD CONSTRAINT ck_Weight CHECK(Weight>=0 )
+/*7、在Product表中将Pid为PD02的Weight改为123456。*/
+UPDATE Product
+SET Weight=123456
+WHERE Pid='PD02'
+/*8、在Product表中将Pid为PD02的Weight改为-100，如果不能执行观察错误信息。*/
+UPDATE Product
+SET Weight=-100
+WHERE Pid='PD02'
+/*9、创建一张WP表，包括Wid、Pid、Note、Hazard四个字段，Cid、Pid为定长字符类型，长度都为4， Note为Text类型，Hazard为变长字符类型、长度为16，
+ Wid、Pid的组合为主键，约束名为pk_WP，Hazard取值只能是“爆炸品、液化气体、易燃液体、易燃固体、一般物品”、约束名为ck_Hazard,Pid为外键，
+参照Product表，约束名为Fk_wp。*/
+CREATE TABLE WP
+(
+Wid CHAR(4),
+Pid CHAR(4) CONSTRAINT Fk_wp FOREIGN KEY REFERENCES Product,
+CONSTRAINT ck_Hazard  PRIMARY  KEY(Wid,Pid),
+Note Text,
+Hazard VARCHAR(16) CHECK(Hazard='爆炸品','液化气体','易燃液体','易燃固体,'一般物品'),
+)
+/*10、在WP表插入以下记录：WD04,PD02,NULL,易燃液体*/
+INSERT WP
+VALUES ('WD04','PD02','NULL','易燃液体')
+/*11、在WP表插入以下记录：WD05,PD02,NULL,压缩气体，如果不能执行观察错误信息。*/
+INSERT WP
+VALUES('WD05','PD02','NULL','压缩气体'）
+/*12、在WP表插入以下记录：WD06,PD12,NULL,液化气体，如果不能执行观察错误信息。*/
+INSERT WP
+VALUES('WD06','PD12','NULL','液化气体'）
+/*13、创建Warehouse表，包括Wid、Wname、Area、MaxStock、ParentWid五个字段，Wid、ParentWid为定长字符类型，长度都为4，
+Wname为变长字符类型，长度为40， Area、MaxStock为Decimal类型、精度都为20、小数位数为3。Wid为主键。ParentWid为外键、
+参照Warehouse表、约束名为Fk_wh_wh*/
+CREATE TABLE Warehouse
+(
+Wid CHAR(4) PRIMARY KEY,
+Wname VARCHAR(40)
+Area Decimal(20[,3])
+MaxStock Decimal(20[,3])
+ParentWid CHAR(4) CONSTRAINT Fk_wh_wh FOREIGN KEY REFERENCES Warehouse
+)
+/*14、在Warehouse表中添加以下记录：
+WD  云海仓库 10000 10000 NULL
+WD04  云1#仓库 3000 3000 WD
+WD05  云2#仓库 3200 3200 WD*/
+INSERT Warehouse
+VALUES('WD','云海仓库','10000','10000','NULL')
+('WD04','云1#仓库','3000','3000','WD')
+('WD05','云2#仓库','3200','3200','WD')
+/*15、在Warehouse表中添加以下记录：WD06  云3#仓库 2700 2700 WD0，如果不能执行观察错误信息*/
+INSERT Warehouse
+VALUES('WD06','云3#仓库','2700','2700','WD0')
+/*16、修改WP，将Wid定义为外键，参照表为Warehouse，约束名为FK_WP_WH*/
+ALTER TABLE WP
+ADD CONSTRAINT FK_WP_WH FOREIGN KEY(Wid) REFERENCES Warehouse
+/*17、删除Warehouse表Wid为WD04的记录，如果不能执行观察错误信息*/
+DELETE Warehouse
+WHERE Eid='WD04'
+/*18、修改WP表，删除外键约束FK_WP_WH*/
+ALTER TABLE WP
+DROP CONSTRAINT FK_WP_WH
+/*19、修改WP，将Wid定义为外键，参照表为Warehouse，约束名为FK_WP_WH,要求级联更新、级联删除。*/
+ALTER TABLE WP
+ADD CONSTRAINT FK_WP_WH FOREIGN KEY(Wid) REFERENCES Warehouse
+ON UPDATE CASCADE
+ON DELETE CASCADE
+/*20、同时执行以下语句，查看WP表和Warehouse表记录
+SELECT * FROM Warehouse
+SELECT * FROM WP
+/*21、修改Warehouse表，将Wid为WD04的Wid改为WD01。然后重做第20题查看两张表对应Wid变化*/
+UPDATE Warehouse
+SET Wid='WD01'
+WHERE Wid='WD04'
+
+SELECT * FROM Warehouse
+SELECT * FROM WP
+/*22、在Warehouse表中删除Wid为WD01的记录。然后重做第20题查看两张表的内容变化*/
+DELETE Warehouse
+WHERE Wid='WD01'
+
+SELECT * FROM Warehouse
+SELECT * FROM WP
+
+
